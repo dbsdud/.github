@@ -1,0 +1,5 @@
+{
+  "packages/api": "0.0.0",
+  "packages/worker": "0.0.0",
+  "services/gateway": "0.0.0"
+}

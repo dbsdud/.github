@@ -1,0 +1,60 @@
+name: release-please (reusable)
+
+# 재사용 워크플로 — 각 프로젝트는 이 파일을 호출(uses)만 한다.
+# 호출 예시는 templates/release.yml 참고.
+#
+# 인증: GitHub App 토큰을 매 실행마다 발급(actions/create-github-app-token).
+#   - App ID는 민감정보가 아니므로 아래 input 기본값에 박아둔다.
+#   - 비밀키(PEM)만 각 repo의 secret(RELEASE_PLEASE_APP_PRIVATE_KEY)으로 주입한다.
+#   - secrets: inherit 로 호출 repo의 secret을 그대로 전달받는다.
+#
+# App 토큰을 쓰는 이유: release-please가 만든 release PR/태그가
+# 다른 워크플로(예: 태그 push 시 publish)를 트리거할 수 있게 하기 위함.
+# (기본 GITHUB_TOKEN으로 만든 이벤트는 후속 워크플로를 트리거하지 못함)
+
+on:
+  workflow_call:
+    inputs:
+      app-id:
+        description: "릴리스 봇 GitHub App의 App ID"
+        type: string
+        required: false
+        default: "__RELEASE_PLEASE_APP_ID__"
+      config-file:
+        description: "release-please 설정 파일 경로"
+        type: string
+        required: false
+        default: "release-please-config.json"
+      manifest-file:
+        description: "release-please manifest 파일 경로"
+        type: string
+        required: false
+        default: ".release-please-manifest.json"
+      target-branch:
+        description: "릴리스 대상 브랜치"
+        type: string
+        required: false
+        default: "main"
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Mint GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ inputs.app-id }}
+          private-key: ${{ secrets.RELEASE_PLEASE_APP_PRIVATE_KEY }}
+
+      - name: Run release-please
+        uses: googleapis/release-please-action@v4
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          config-file: ${{ inputs.config-file }}
+          manifest-file: ${{ inputs.manifest-file }}
+          target-branch: ${{ inputs.target-branch }}
