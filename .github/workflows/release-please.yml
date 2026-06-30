@@ -19,7 +19,7 @@ on:
         description: "릴리스 봇 GitHub App의 App ID"
         type: string
         required: false
-        default: "__RELEASE_PLEASE_APP_ID__"
+        default: "4182767"
       config-file:
         description: "release-please 설정 파일 경로"
         type: string
